@@ -1,8 +1,12 @@
+"use client";
+
 import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/theme-provider";
+import { useAuthStore } from "@/lib/store/auth-store";
+import { useEffect } from "react";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -16,6 +20,12 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const checkAuth = useAuthStore((state) => state.checkAuth);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>

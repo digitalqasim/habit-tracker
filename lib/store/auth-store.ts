@@ -1,35 +1,56 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { register as apiRegister, login as apiLogin } from '../api';
+import { signIn, signUp, signOut, getUser } from '@/lib/supabase';
 
-export type User = { id: string; email: string } | null;
+interface User {
+  id: string;
+  email: string;
+}
 
-export type AuthState = {
-  user: User;
-  register: (email: string, password: string) => Promise<any>;
-  login: (email: string, password: string) => Promise<any>;
-  logout: () => void;
-};
+interface AuthState {
+  user: User | null;
+  register: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  logout: () => Promise<void>;
+  checkAuth: () => Promise<void>;
+}
 
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       user: null,
       register: async (email, password) => {
-        const res = await apiRegister(email, password);
-        if (res.success) {
-          set({ user: { id: res.id, email } });
+        const { data, error } = await signUp(email, password);
+        if (error) {
+          return { success: false, error: error.message };
         }
-        return res;
+        if (data.user) {
+          set({ user: { id: data.user.id, email: data.user.email! } });
+        }
+        return { success: true };
       },
       login: async (email, password) => {
-        const res = await apiLogin(email, password);
-        if (res.success) {
-          set({ user: { id: res.id, email } });
+        const { data, error } = await signIn(email, password);
+        if (error) {
+          return { success: false, error: error.message };
         }
-        return res;
+        if (data.user) {
+          set({ user: { id: data.user.id, email: data.user.email! } });
+        }
+        return { success: true };
       },
-      logout: () => set({ user: null }),
+      logout: async () => {
+        await signOut();
+        set({ user: null });
+      },
+      checkAuth: async () => {
+        const { user, error } = await getUser();
+        if (error || !user) {
+          set({ user: null });
+          return;
+        }
+        set({ user: { id: user.id, email: user.email! } });
+      },
     }),
     { name: 'auth-storage' }
   )
