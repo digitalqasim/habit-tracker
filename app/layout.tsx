@@ -1,10 +1,6 @@
-"use client";
-
 import "./globals.css";
 import { Inter } from "next/font/google";
-import { Toaster } from "sonner";
-import { ThemeProvider } from "@/components/theme-provider";
-import { AuthProvider } from "./providers";
+import { RootLayoutClient } from "./RootLayoutClient";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -13,22 +9,6 @@ export const metadata = {
   title: "Habit Tracker",
   description: "Track your habits and achieve your goals",
 };
-
-// Client component wrapper
-function RootLayoutClient({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <ThemeProvider attribute="class" defaultTheme="light">
-      <AuthProvider>
-        {children}
-      </AuthProvider>
-      <Toaster position="top-right" closeButton richColors />
-    </ThemeProvider>
-  );
-}
 
 // Server component (default export)
 export default function RootLayout({
